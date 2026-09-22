@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.20)
+project(XPlaneAICopilotBridge LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+set(XPLANE_SDK "" CACHE PATH "Path to extracted X-Plane SDK")
+if(NOT XPLANE_SDK)
+  message(FATAL_ERROR "Set -DXPLANE_SDK=/path/to/SDK")
+endif()
+
+add_library(AICopilotBridge MODULE src/plugin.cpp)
+target_include_directories(AICopilotBridge PRIVATE "${XPLANE_SDK}/CHeaders/XPLM")
+# Target API compatible with X-Plane 11.50+ while building with current SDK.
+target_compile_definitions(AICopilotBridge PRIVATE XPLM200 XPLM210 XPLM300)
+
+if(WIN32)
+  target_compile_definitions(AICopilotBridge PRIVATE IBM=1)
+  target_link_directories(AICopilotBridge PRIVATE "${XPLANE_SDK}/Libraries/Win")
+  target_link_libraries(AICopilotBridge PRIVATE XPLM_64 ws2_32)
+  set_target_properties(AICopilotBridge PROPERTIES PREFIX "" SUFFIX ".xpl" OUTPUT_NAME "AICopilotBridge")
+elseif(APPLE)
+  target_compile_definitions(AICopilotBridge PRIVATE APL=1)
+  find_library(COREFOUNDATION CoreFoundation)
+  target_link_libraries(AICopilotBridge PRIVATE "${XPLANE_SDK}/Libraries/Mac/XPLM.framework" ${COREFOUNDATION})
+  set_target_properties(AICopilotBridge PROPERTIES PREFIX "" SUFFIX ".xpl" OUTPUT_NAME "AICopilotBridge")
+else()
+  target_compile_definitions(AICopilotBridge PRIVATE LIN=1)
+  set_target_properties(AICopilotBridge PROPERTIES PREFIX "" SUFFIX ".xpl" OUTPUT_NAME "AICopilotBridge")
+endif()

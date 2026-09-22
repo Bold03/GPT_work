@@ -1,0 +1,81 @@
+{
+  "default": "zibo",
+  "common_telemetry": {
+    "acf_desc": {"dataref": "sim/aircraft/view/acf_descrip", "type": "string"},
+    "on_ground": {"dataref": "sim/flightmodel2/gear/on_ground", "type": "int_array", "index": 0},
+    "gs_mps": {"dataref": "sim/flightmodel/position/groundspeed", "type": "float"},
+    "ias": {"dataref": "sim/cockpit2/gauges/indicators/airspeed_kts_pilot", "type": "float"},
+    "radio_alt": {"dataref": "sim/cockpit2/gauges/actuators/radio_altimeter_height_ft_pilot", "type": "float"},
+    "altitude": {"dataref": "sim/cockpit2/gauges/indicators/altitude_ft_pilot", "type": "float"},
+    "vvi": {"dataref": "sim/cockpit2/gauges/indicators/vvi_fpm_pilot", "type": "float"},
+    "park_brake": {"dataref": "sim/flightmodel/controls/parkbrake", "type": "float"}
+  },
+  "profiles": {
+    "zibo": {
+      "description": "Zibo 737-800X baseline profile. Validate mappings against the installed Zibo release.",
+      "telemetry": {
+        "n1_1": {"dataref": "laminar/B738/engine/indicators/N1_percent_1", "type": "float"},
+        "n1_2": {"dataref": "laminar/B738/engine/indicators/N1_percent_2", "type": "float"},
+        "cmd_a": {"dataref": "laminar/B738/autopilot/cmd_a_status", "type": "float"},
+        "lnav": {"dataref": "laminar/B738/autopilot/lnav_status", "type": "float"},
+        "vnav": {"dataref": "laminar/B738/autopilot/vnav_status1", "type": "float"}
+      },
+      "actions": {
+        "battery_on": {"commands": ["laminar/B738/switch/battery_dn"]},
+        "battery_off": {"commands": ["laminar/B738/switch/battery_up"]},
+        "beacon_on": {"commands": ["sim/lights/beacon_lights_on"]},
+        "beacon_off": {"commands": ["sim/lights/beacon_lights_off"]},
+        "landing_lights_on": {"commands": ["sim/lights/landing_lights_on"]},
+        "landing_lights_off": {"commands": ["sim/lights/landing_lights_off"]},
+        "taxi_lights_on": {"commands": ["sim/lights/taxi_lights_on"]},
+        "taxi_lights_off": {"commands": ["sim/lights/taxi_lights_off"]},
+        "seat_belts_on": {"commands": ["sim/systems/seatbelt_sign_toggle"]},
+        "seat_belts_off": {"commands": ["sim/systems/seatbelt_sign_toggle"]},
+        "autopilot_on": {"commands": ["laminar/B738/autopilot/cmd_a_press"]},
+        "autopilot_off": {"commands": ["sim/autopilot/servos_off_any"]},
+        "lnav_on": {"commands": ["laminar/B738/autopilot/lnav_press"]},
+        "vnav_on": {"commands": ["laminar/B738/autopilot/vnav_press"]},
+        "approach_on": {"commands": ["laminar/B738/autopilot/app_press"]},
+        "gear_up": {"commands": ["sim/flight_controls/landing_gear_up"]},
+        "gear_down": {"commands": ["sim/flight_controls/landing_gear_down"]},
+        "heading": {"dataref": "laminar/B738/autopilot/mcp_hdg_dial", "type": "float", "range": [0, 359]},
+        "altitude": {"dataref": "laminar/B738/autopilot/mcp_alt_dial", "type": "float", "range": [0, 50000]},
+        "speed": {"dataref": "laminar/B738/autopilot/mcp_speed_dial_kts", "type": "float", "range": [100, 400]},
+        "vspeed": {"dataref": "sim/cockpit/autopilot/vertical_velocity", "type": "float", "range": [-6000, 6000]}
+      }
+    },
+    "levelup": {
+      "description": "LevelUp 737NG baseline profile. Many NG cockpit interfaces use laminar/B738-compatible paths, but validate every mapping for your exact LevelUp variant/release.",
+      "telemetry": {
+        "n1_1": {"dataref": "laminar/B738/engine/indicators/N1_percent_1", "type": "float"},
+        "n1_2": {"dataref": "laminar/B738/engine/indicators/N1_percent_2", "type": "float"},
+        "cmd_a": {"dataref": "laminar/B738/autopilot/cmd_a_status", "type": "float"},
+        "lnav": {"dataref": "laminar/B738/autopilot/lnav_status", "type": "float"},
+        "vnav": {"dataref": "laminar/B738/autopilot/vnav_status1", "type": "float"}
+      },
+      "actions": {
+        "battery_on": {"commands": ["laminar/B738/switch/battery_dn"]},
+        "battery_off": {"commands": ["laminar/B738/switch/battery_up"]},
+        "beacon_on": {"commands": ["sim/lights/beacon_lights_on"]},
+        "beacon_off": {"commands": ["sim/lights/beacon_lights_off"]},
+        "landing_lights_on": {"commands": ["sim/lights/landing_lights_on"]},
+        "landing_lights_off": {"commands": ["sim/lights/landing_lights_off"]},
+        "taxi_lights_on": {"commands": ["sim/lights/taxi_lights_on"]},
+        "taxi_lights_off": {"commands": ["sim/lights/taxi_lights_off"]},
+        "seat_belts_on": {"commands": ["sim/systems/seatbelt_sign_toggle"]},
+        "seat_belts_off": {"commands": ["sim/systems/seatbelt_sign_toggle"]},
+        "autopilot_on": {"commands": ["laminar/B738/autopilot/cmd_a_press"]},
+        "autopilot_off": {"commands": ["sim/autopilot/servos_off_any"]},
+        "lnav_on": {"commands": ["laminar/B738/autopilot/lnav_press"]},
+        "vnav_on": {"commands": ["laminar/B738/autopilot/vnav_press"]},
+        "approach_on": {"commands": ["laminar/B738/autopilot/app_press"]},
+        "gear_up": {"commands": ["sim/flight_controls/landing_gear_up"]},
+        "gear_down": {"commands": ["sim/flight_controls/landing_gear_down"]},
+        "heading": {"dataref": "laminar/B738/autopilot/mcp_hdg_dial", "type": "float", "range": [0, 359]},
+        "altitude": {"dataref": "laminar/B738/autopilot/mcp_alt_dial", "type": "float", "range": [0, 50000]},
+        "speed": {"dataref": "laminar/B738/autopilot/mcp_speed_dial_kts", "type": "float", "range": [100, 400]},
+        "vspeed": {"dataref": "sim/cockpit/autopilot/vertical_velocity", "type": "float", "range": [-6000, 6000]}
+      }
+    }
+  }
+}

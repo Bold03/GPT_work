@@ -1,0 +1,15 @@
+{
+  "aircraft_profile": "auto",
+  "profiles_file": "aircraft_profiles.json",
+  "python_udp_port": 49051,
+  "http_port": 8765,
+  "voice": {
+    "enabled": false,
+    "require_wake_word": true,
+    "vosk_models": {
+      "id": "",
+      "en": ""
+    }
+  },
+  "tts": {"enabled": true}
+}

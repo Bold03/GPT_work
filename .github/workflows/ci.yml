@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Python unit tests
+        working-directory: python
+        run: python -m unittest discover -s tests -v
+
+  csharp-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build .NET console UI
+        run: dotnet build ui_csharp/CopilotConsole/CopilotConsole.csproj --configuration Release
+
+  cpp-project-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify C++ project files
+        run: |
+          test -f bridge_cpp/CMakeLists.txt
+          test -f bridge_cpp/src/plugin.cpp
+          grep -q "XPLM300" bridge_cpp/CMakeLists.txt
+      - name: Build note
+        run: echo "Native .xpl compilation requires the official X-Plane SDK; follow docs/INSTALL.md."
