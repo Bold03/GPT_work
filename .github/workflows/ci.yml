@@ -7,6 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  XPLANE_SDK_URL: https://developer.x-plane.com/wp-content/plugins/code-sample-generation/sdk_zip_files/XPSDK430.zip
+
 jobs:
   python-tests:
     runs-on: ubuntu-latest
@@ -15,11 +18,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
-          cache-dependency-path: python/requirements.txt
       - name: Install Python test dependency
         working-directory: python
-        run: python -m pip install --upgrade pip pytest
+        run: python -m pip install --upgrade pytest
       - name: Run Python tests
         working-directory: python
         run: python -m pytest tests -v
@@ -33,15 +34,79 @@ jobs:
           dotnet-version: "8.0.x"
       - name: Build .NET console UI
         run: dotnet build ui_csharp/CopilotConsole/CopilotConsole.csproj --configuration Release
+      - name: Upload .NET UI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CopilotConsole-Windows
+          path: ui_csharp/CopilotConsole/bin/Release/net8.0/
+          if-no-files-found: error
 
-  cpp-project-check:
-    runs-on: ubuntu-latest
+  cpp-windows-build:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify C++ project files
+
+      - name: Download X-Plane SDK 4.3.0
+        shell: pwsh
         run: |
-          test -f bridge_cpp/CMakeLists.txt
-          test -f bridge_cpp/src/plugin.cpp
-          grep -q "XPLM300" bridge_cpp/CMakeLists.txt
-      - name: Build note
-        run: echo "Native .xpl compilation requires the official X-Plane SDK; follow docs/INSTALL.md."
+          $zip = Join-Path $env:RUNNER_TEMP "XPSDK430.zip"
+          curl.exe -L --fail --retry 3 "$env:XPLANE_SDK_URL" -o $zip
+          if (-not (Test-Path $zip)) { throw "X-Plane SDK download failed" }
+          Write-Host "Downloaded SDK to $zip"
+
+      - name: Extract and locate X-Plane SDK
+        id: sdk
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "XPSDK430.zip"
+          $extract = Join-Path $env:RUNNER_TEMP "XPSDK430"
+          Expand-Archive -Path $zip -DestinationPath $extract -Force
+
+          $header = Get-ChildItem -Path $extract -Recurse -File -Filter "XPLMPlugin.h" |
+            Where-Object { $_.FullName -match "CHeaders[\\/]XPLM[\\/]XPLMPlugin\.h$" } |
+            Select-Object -First 1
+
+          if (-not $header) {
+            Get-ChildItem -Path $extract -Recurse | Select-Object -First 100 | ForEach-Object { Write-Host $_.FullName }
+            throw "Could not locate CHeaders/XPLM/XPLMPlugin.h in extracted SDK"
+          }
+
+          $sdkRoot = Split-Path (Split-Path (Split-Path $header.FullName -Parent) -Parent) -Parent
+          $xplmLib = Join-Path $sdkRoot "Libraries/Win/XPLM_64.lib"
+          if (-not (Test-Path $xplmLib)) {
+            throw "Could not locate XPLM_64.lib under $sdkRoot"
+          }
+
+          Write-Host "X-Plane SDK root: $sdkRoot"
+          "root=$sdkRoot" >> $env:GITHUB_OUTPUT
+
+      - name: Configure C++ bridge
+        shell: pwsh
+        run: |
+          cmake -S bridge_cpp -B build-bridge -A x64 "-DXPLANE_SDK=${{ steps.sdk.outputs.root }}"
+
+      - name: Build AICopilotBridge.xpl
+        shell: pwsh
+        run: |
+          cmake --build build-bridge --config Release --parallel
+
+      - name: Package X-Plane plugin
+        shell: pwsh
+        run: |
+          $xpl = Get-ChildItem -Path build-bridge -Recurse -File -Filter "AICopilotBridge.xpl" | Select-Object -First 1
+          if (-not $xpl) { throw "AICopilotBridge.xpl was not produced" }
+
+          $dest = "artifact/AICopilotBridge/win_x64"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          Copy-Item $xpl.FullName (Join-Path $dest "AICopilotBridge.xpl") -Force
+          Copy-Item -Path "config" -Destination "artifact/AICopilotBridge/config" -Recurse -Force
+
+          Write-Host "Packaged plugin:"
+          Get-ChildItem -Path artifact -Recurse | ForEach-Object { Write-Host $_.FullName }
+
+      - name: Upload Windows X-Plane plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: AICopilotBridge-Windows-x64
+          path: artifact/AICopilotBridge/
+          if-no-files-found: error
