@@ -3,24 +3,52 @@
 ## Prerequisites
 
 - X-Plane 11.50+ or X-Plane 12.
-- Current X-Plane Plugin SDK for building the C++ bridge.
-- CMake and a 64-bit C++ compiler supported by your platform.
 - Python 3.10+ recommended for the external copilot service.
 - Optional voice: Vosk models for Indonesian and/or English, plus `vosk`, `sounddevice`, and `pyttsx3`.
-- Optional UI: .NET 8 SDK.
+- Optional UI: .NET 8 runtime/SDK.
+- CMake, a 64-bit C++ compiler, and the X-Plane Plugin SDK are only required when compiling the bridge locally.
 
-## Build the native bridge
+## Recommended: download the Windows bridge from GitHub Actions
+
+Every push to `main` runs the `CI` workflow. The `cpp-windows-build` job downloads the official X-Plane SDK, builds the 64-bit Windows bridge, and uploads an artifact named:
+
+`AICopilotBridge-Windows-x64`
+
+In GitHub, open **Actions → latest successful CI run → Artifacts**, then download that artifact. Its layout is ready for installation:
+
+```text
+AICopilotBridge/
+├── win_x64/
+│   └── AICopilotBridge.xpl
+└── config/
+```
+
+Copy the `AICopilotBridge` folder into:
+
+```text
+X-Plane 12/Resources/plugins/
+```
+
+The final plugin path should therefore be:
+
+```text
+X-Plane 12/Resources/plugins/AICopilotBridge/win_x64/AICopilotBridge.xpl
+```
+
+## Build the native bridge locally
+
+Download/extract the current X-Plane Plugin SDK first.
 
 Windows PowerShell:
 
 ```powershell
-./scripts/build_bridge.ps1 -Sdk "C:\SDK\XPSDK430"
+./scripts/build_bridge.ps1 -Sdk "C:\SDK\XPSDK430\SDK"
 ```
 
 Linux/macOS:
 
 ```bash
-./scripts/build_bridge.sh /path/to/XPSDK430
+./scripts/build_bridge.sh /path/to/XPSDK430/SDK
 ```
 
 Copy the resulting `AICopilotBridge.xpl` into the XPLM 3.x platform folder: `Resources/plugins/AICopilotBridge/win_x64/`, `mac_x64/`, or `lin_x64/`. The helper `scripts/install.py` selects the correct platform folder and performs the copy.
