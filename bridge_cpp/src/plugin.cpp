@@ -1,3 +1,14 @@
+#if defined(_WIN32)
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  #ifndef NOMINMAX
+    #define NOMINMAX
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#endif
+
 #include "XPLMDataAccess.h"
 #include "XPLMPlugin.h"
 #include "XPLMProcessing.h"
@@ -16,8 +27,6 @@
 #include <vector>
 
 #if defined(_WIN32)
-  #include <winsock2.h>
-  #include <ws2tcpip.h>
   using socket_t = SOCKET;
   constexpr socket_t INVALID_SOCK = INVALID_SOCKET;
 #else
